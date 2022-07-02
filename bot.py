@@ -8,7 +8,7 @@ print(weatherapp.weather.weather_context)
 
 bot = telebot.TeleBot(config.TOKEN)
 
-message_ids = []
+message_ids = {}
 
 
 def send_murkup(chat_id, message_id):
@@ -44,24 +44,25 @@ def text_hand(message):
     # print(weather.weather_context)
     chat_id = message.chat.id
     message_id = message.message_id
-     
+
+    if chat_id not in message_ids.keys():
+        message_ids[chat_id] = []        
+    message_ids[chat_id].append(message_id)
+
     if weatherapp.weather.weather_context :
         data = weatherapp.weather.weather_parse(message.text)        
-
         if data != None:
             bot.delete_message(chat_id, message_id-1)
             bot.send_message(chat_id, text=data)
             create_back_button(chat_id)
-
-            # message_ids[message.chat.id].append([message_id, message_id+1])
         else:
             bot.delete_message(chat_id, message_id-1)
             bot.send_message(chat_id, text="city not found")
             create_back_button(message.chat.id) 
 
-        message_ids.append(message_id+1)
-
-    message_ids.append(message_id)
+        message_ids[chat_id].append(message_id+1)
+     
+    print(message_ids) 
 
 # CALLBACK HANDLERS
 @bot.callback_query_handler(func=lambda call: call.data == "back")
@@ -83,22 +84,17 @@ def weather_hand(call):
 @bot.callback_query_handler(func=lambda call: call.data == "clearchat")
 def clear_chat_hand(call): 
     global message_ids
+    chat_id = call.message.chat.id
 
-    for mi in message_ids:
-        # with op
-        if type(mi) == list:
-            for mi_k in mi: 
-                bot.delete_message(call.message.chat.id, mi_k)
-        else:
-            bot.delete_message(call.message.chat.id, mi)
-
+    for mid in message_ids[chat_id]:
+        bot.delete_message(chat_id, mid)
+    del message_ids[chat_id]
         # try:
         #     bot.delete_message(call.message.chat.id, mi)
         # except:
         #     time.sleep(2)
         #     bot.delete_message(call.message.chat.id, mi)
 
-    message_ids = []    
 
    
 

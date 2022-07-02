@@ -8,7 +8,6 @@ weather_context = False
 def weather_parse(city):
     url = f"https://world-weather.ru/pogoda/russia/{city}/" 
     resp = requests.get(url, headers=config.headers)
-    # print(resp.text)
     bs = BeautifulSoup(resp.text, "lxml")
 
     td_day = bs.find_all("td", class_="weather-day")
